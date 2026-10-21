@@ -5,6 +5,7 @@ extension CanonicalSampleType {
     var iconName: String {
         switch self {
         case .steps:                  return "figure.walk"
+        case .floors:                 return "figure.stairs"
         case .distance:               return "location.fill"
         case .activeEnergy:           return "flame.fill"
         case .basalEnergy:            return "bolt.fill"
@@ -36,7 +37,7 @@ extension CanonicalSampleType {
         switch self {
         case .activeEnergy, .basalEnergy, .bodyTemperature:
             return .orange
-        case .steps, .distance, .standHours:
+        case .steps, .floors, .distance, .standHours:
             return .green
         case .heartRate, .restingHeartRate, .hrv:
             return .red

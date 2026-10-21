@@ -128,6 +128,9 @@ struct BLESyncView: View {
             help("2.", "Make sure the watch is unlocked and near the iPhone.")
             help("3.", "Tap Sync via Bluetooth above.")
             help("4.", "Approve Health permissions on the first run.")
+            Text("Syncs steps, heart rate, distance and floors climbed. Calories are skipped because the watch reports a combined resting and active total, which cannot be recorded accurately as active energy.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
         .padding(14)
         .frame(maxWidth: .infinity, alignment: .leading)

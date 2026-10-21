@@ -18,7 +18,7 @@ final class HealthKitManager {
     /// Types we may write to HealthKit. Keep in sync with the backend's canonical list.
     var writeTypes: Set<HKSampleType> {
         var set: Set<HKSampleType> = []
-        for canonical in CanonicalSampleType.allCases {
+        for canonical in Self.watchMetrics {
             if let t = canonical.healthKitWriteType { set.insert(t) }
         }
         return set
@@ -28,12 +28,14 @@ final class HealthKitManager {
     /// in the Today summary screen.
     var readTypes: Set<HKObjectType> {
         var set: Set<HKObjectType> = []
-        for canonical in CanonicalSampleType.allCases {
+        for canonical in Self.watchMetrics {
             if let t = canonical.healthKitReadType { set.insert(t) }
         }
-        set.insert(HKObjectType.workoutType())
         return set
     }
+
+    // Only request access for metrics actually produced and mapped by this watch app.
+    static let watchMetrics: Set<CanonicalSampleType> = [.steps, .distance, .heartRate, .floors]
 
     func requestAuthorization() async throws {
         guard Self.isAvailable else { throw HealthKitError.unavailable }
@@ -391,7 +393,7 @@ extension HealthKitManager {
 
     private func isCumulative(_ m: CanonicalSampleType) -> Bool {
         switch m {
-        case .steps, .distance, .activeEnergy, .basalEnergy: return true
+        case .steps, .floors, .distance, .activeEnergy, .basalEnergy: return true
         default: return false
         }
     }
@@ -399,6 +401,7 @@ extension HealthKitManager {
     private func displayUnitLabel(for m: CanonicalSampleType) -> String {
         switch m {
         case .steps:                                 return "steps"
+        case .floors:                                return "floors"
         case .distance:                              return "km"
         case .activeEnergy, .basalEnergy:            return "kcal"
         case .heartRate, .restingHeartRate:          return "bpm"

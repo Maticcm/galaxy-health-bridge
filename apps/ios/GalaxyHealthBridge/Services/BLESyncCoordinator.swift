@@ -98,7 +98,10 @@ final class BLESyncCoordinator: ObservableObject {
         switch w.t {
         case "hr":     type = .heartRate
         case "steps":  type = .steps
-        case "cal":    type = .activeEnergy
+        // Wear Health Services CALORIES_DAILY includes basal energy. It cannot
+        // be written as HealthKit active energy without an accurate split.
+        case "cal":    type = nil
+        case "floors": type = .floors
         case "dist":   type = .distance
         case "sleep_in_bed": type = .sleepInBed
         case "sleep_awake":  type = .sleepAwake

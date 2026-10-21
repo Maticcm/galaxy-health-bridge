@@ -1,4 +1,5 @@
 import XCTest
+import HealthKit
 @testable import GalaxyHealthBridge
 
 final class BLESyncCoordinatorTests: XCTestCase {
@@ -53,14 +54,36 @@ final class BLESyncCoordinatorTests: XCTestCase {
         XCTAssertEqual(canonical.source, "GalaxyWatch")
     }
 
-    func testCaloriesWireSampleMaps() throws {
+    func testTotalCaloriesAreNotMisreportedAsActiveEnergy() throws {
         let now = Date()
         let nowMs = Int64(now.timeIntervalSince1970 * 1000)
         let wire = WireSample(uid: "cal-day-2026-173", t: "cal", v: 17.0, u: "kcal",
                               s: nowMs - 60_000, e: nowMs)
+        XCTAssertNil(BLESyncCoordinator.toCanonical(wire, now: now))
+    }
+
+    func testFloorsReachHealthKitAsFlightsClimbed() throws {
+        let now = Date()
+        let nowMs = Int64(now.timeIntervalSince1970 * 1000)
+        let wire = WireSample(uid: "floors-day-2026-173", t: "floors", v: 3, u: "count",
+                              s: nowMs - 60_000, e: nowMs)
         let canonical = try XCTUnwrap(BLESyncCoordinator.toCanonical(wire, now: now))
-        XCTAssertEqual(canonical.type, .activeEnergy)
-        XCTAssertEqual(canonical.value, 17.0)
+        XCTAssertEqual(canonical.type, .floors)
+        let sample = try XCTUnwrap(canonical.toHKSample() as? HKQuantitySample)
+        XCTAssertEqual(sample.quantityType.identifier, HKQuantityTypeIdentifier.flightsClimbed.rawValue)
+        XCTAssertEqual(sample.quantity.doubleValue(for: .count()), 3)
+    }
+
+    func testHealthPermissionsMatchImplementedWatchMetrics() {
+        let manager = HealthKitManager()
+        let expected: Set<HKSampleType> = [
+            HKQuantityType.quantityType(forIdentifier: .stepCount)!,
+            HKQuantityType.quantityType(forIdentifier: .distanceWalkingRunning)!,
+            HKQuantityType.quantityType(forIdentifier: .heartRate)!,
+            HKQuantityType.quantityType(forIdentifier: .flightsClimbed)!,
+        ]
+        XCTAssertEqual(manager.writeTypes, expected)
+        XCTAssertEqual(manager.readTypes.count, expected.count)
     }
 
     func testDistanceWireSampleMaps() throws {

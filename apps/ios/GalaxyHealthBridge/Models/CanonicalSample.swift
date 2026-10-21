@@ -6,6 +6,7 @@ import HealthKit
 /// end-to-end; the rest are present so the mapping is exhaustive.
 enum CanonicalSampleType: String, CaseIterable, Codable {
     case steps
+    case floors
     case distance
     case activeEnergy           = "active_energy"
     case basalEnergy            = "basal_energy"
@@ -43,6 +44,7 @@ enum CanonicalSampleType: String, CaseIterable, Codable {
         let id: HKQuantityTypeIdentifier?
         switch self {
         case .steps:                    id = .stepCount
+        case .floors:                   id = .flightsClimbed
         case .distance:                 id = .distanceWalkingRunning
         case .activeEnergy:             id = .activeEnergyBurned
         case .basalEnergy:              id = .basalEnergyBurned
@@ -79,6 +81,7 @@ enum CanonicalSampleType: String, CaseIterable, Codable {
     var healthKitUnit: HKUnit? {
         switch self {
         case .steps:                  return .count()
+        case .floors:                 return .count()
         case .distance:               return .meter()
         case .activeEnergy, .basalEnergy: return .kilocalorie()
         case .heartRate, .restingHeartRate: return HKUnit(from: "count/min")
@@ -109,6 +112,7 @@ enum CanonicalSampleType: String, CaseIterable, Codable {
     var displayName: String {
         switch self {
         case .steps:                  return "Steps"
+        case .floors:                 return "Floors climbed"
         case .distance:               return "Distance"
         case .activeEnergy:           return "Active calories"
         case .basalEnergy:            return "Resting calories"
