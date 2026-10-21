@@ -46,11 +46,18 @@ jobs:
           test -f "$APP/GalaxyHealthBridge"
           file "$APP/GalaxyHealthBridge" | grep -q arm64
           otool -L "$APP/GalaxyHealthBridge" | grep -q HealthKit
+          # Ad-hoc signing embeds the requested entitlements for AltStore to read.
+          # It uses no Apple identity, certificate, key, or provisioning profile.
+          codesign --force --sign - --entitlements "$ENTITLEMENTS" --generate-entitlement-der "$APP"
+          codesign --verify --strict "$APP"
+          codesign --display --entitlements - "$APP" > "$RUNNER_TEMP/embedded-entitlements.plist"
+          test "$(/usr/libexec/PlistBuddy -c 'Print :com.apple.developer.healthkit' "$RUNNER_TEMP/embedded-entitlements.plist")" = true
           mkdir -p "$RUNNER_TEMP/health-package/Payload" "$GITHUB_WORKSPACE/artifacts"
           ditto "$APP" "$RUNNER_TEMP/health-package/Payload/GalaxyHealthBridge.app"
           (cd "$RUNNER_TEMP/health-package" && /usr/bin/zip -qry "$GITHUB_WORKSPACE/artifacts/GalaxyHealthBridge.ipa" Payload)
           cp "$ENTITLEMENTS" "$GITHUB_WORKSPACE/artifacts/required-entitlements.plist"
-          printf '%s\n' 'Unsigned device build. AltStore must preserve and provision HealthKit during local signing. Installation alone does not verify Apple Health writes.' > "$GITHUB_WORKSPACE/artifacts/SIGNING-NOTE.txt"
+          cp "$RUNNER_TEMP/embedded-entitlements.plist" "$GITHUB_WORKSPACE/artifacts/embedded-entitlements.plist"
+          printf '%s\n' 'Device build with ad-hoc signature to retain requested HealthKit entitlements. No Apple signing identity used. AltStore must obtain a HealthKit-enabled profile and sign locally. Installation alone does not verify Apple Health writes.' > "$GITHUB_WORKSPACE/artifacts/SIGNING-NOTE.txt"
           (cd "$GITHUB_WORKSPACE/artifacts" && shasum -a 256 GalaxyHealthBridge.ipa > SHA256SUMS.txt)
       - uses: actions/upload-artifact@v4
         with:
