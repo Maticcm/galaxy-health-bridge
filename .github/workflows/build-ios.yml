@@ -47,7 +47,7 @@ jobs:
           # It uses no Apple identity, certificate, key, or provisioning profile.
           codesign --force --sign - --entitlements "$ENTITLEMENTS" --generate-entitlement-der "$APP"
           codesign --verify --strict "$APP"
-          codesign --display --entitlements - "$APP" > "$RUNNER_TEMP/embedded-entitlements.plist"
+          codesign --display --entitlements :- "$APP" > "$RUNNER_TEMP/embedded-entitlements.plist"
           test "$(/usr/libexec/PlistBuddy -c 'Print :com.apple.developer.healthkit' "$RUNNER_TEMP/embedded-entitlements.plist")" = true
           mkdir -p "$RUNNER_TEMP/health-package/Payload" "$GITHUB_WORKSPACE/artifacts"
           ditto "$APP" "$RUNNER_TEMP/health-package/Payload/GalaxyHealthBridge.app"
